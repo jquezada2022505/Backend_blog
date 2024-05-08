@@ -1,43 +1,26 @@
-import { response, request } from "express";
-import bcryptjs from 'bcryptjs';
+import { response } from "express";
 import Publications from './publications.model.js';
-import Comentario from '../coments/coments.model.js';
-import { validarJWT } from '../middlewares/validar-jwt.js';
-import jwt from 'jsonwebtoken';
-import Usuario from '../users/user.model.js';
-import Coment from '../coments/coments.model.js';
 
-export const publicationsGet = async(req = request, res = response) => {
-    const coment = req.coments;
-    const { limite, desde } = req.query;
-    const query = { estado: true };
-    const [total, publications, coments] = await Promise.all([
-        Publications.countDocuments(query),
-        Publications.find(query),
-        Comentario.countDocuments(query),
-        Comentario.find(query)
-        .skip(Number(desde))
-        .limit(Number(limite))
+export const publicationsGet = async (req, res = response) => {
+    const [total, publications] = await Promise.all([
+        Publications.countDocuments(),
+        Publications.find()
     ]);
 
     res.status(200).json({
         total,
-        publications,
-        idComent: req.idComent,
+        publications
     });
 }
 
 
-export const publicationsPost = async(req, res) => {
-    const user = req.usuario;
-    const { title, category, description } = req.body;
+export const publicationsPost = async (req, res) => {
+    const { title, description } = req.body;
 
     try {
         const publication = new Publications({
             title,
-            category,
-            description,
-            idUser: user.email,
+            description
         });
 
         await publication.save();
@@ -52,7 +35,7 @@ export const publicationsPost = async(req, res) => {
     }
 };
 
-export const getPublicationsById = async(req, res) => {
+export const getPublicationsById = async (req, res) => {
     const { id } = req.params;
     const publications = await Publications.findOne({ _id: id });
 
@@ -61,54 +44,16 @@ export const getPublicationsById = async(req, res) => {
     })
 }
 
-export const publicationsPut = async(req, res) => {
-    const { id } = req.params;
-    const { _id, ...resto } = req.body;
-
-    try {
-        const token = req.header("x-token");
-        if (!token) {
-            return res.status(401).json({ msg: "There is no token in the request" });
-        }
-
-        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
-        const usuario = await Usuario.findById(uid);
-        if (!usuario) {
-            return res.status(401).json({ msg: 'User does not exist in the database' });
-        }
-
-        await Publications.findByIdAndUpdate(id, resto);
-
-        const publications = await Publications.findOne({ _id: id });
-
-        res.status(200).json({ msg: 'Updated Publication', publications });
-    } catch (error) {
-        console.error('Error updating publication:', error);
-        res.status(500).json({ error: 'Error updating publication' });
-    }
-};
-
-export const publicationsDelete = async(req, res) => {
+export const publicationsDelete = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const token = req.header("x-token");
-        if (!token) {
-            return res.status(401).json({ msg: "There is no token in the request" });
-        }
-
-        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
-        const usuario = await Usuario.findById(uid);
-        if (!usuario) {
-            return res.status(401).json({ msg: 'User does not exist in the database' });
-        }
-
-        const publication = await Publications.findByIdAndUpdate(id, { estado: false });
+        const publication = await Publications.findByIdAndDelete(id);
         if (!publication) {
             return res.status(404).json({ msg: 'Publication not found' });
         }
 
-        res.status(200).json({ msg: 'Publication deleted successfully', publication, usuario });
+        res.status(200).json({ msg: 'Publication deleted successfully', publication });
     } catch (error) {
         console.error('Error deleting publication:', error);
         res.status(500).json({ error: 'Error deleting publication' });

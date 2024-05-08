@@ -1,12 +1,6 @@
-import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
+import mongoose, {  } from 'mongoose';
 
 const ComentsSchema = mongoose.Schema({
-    idUser: {
-        type: String,
-        ref: "User",
-        required: [true, "The User is obligatory"],
-    },
     idPublication: {
         type: String,
         ref: "Publications",
@@ -16,8 +10,9 @@ const ComentsSchema = mongoose.Schema({
         type: String,
         required: [true, "The description is obligatory"],
     },
-    img: {
-        type: String,
+    responseComent: {
+        type: mongoose.Schema.ObjectId,
+        required: [true, "The response Coment is obligatory"],
     },
     estado: {
         type: Boolean,
