@@ -1,42 +1,21 @@
 import { check } from "express-validator";
-import {
-    publicationsGet,
-    publicationsPost,
-    getPublicationsById,
-    publicationsDelete
-} from "./publications.controller.js";
-import { validarCampos } from "../middlewares/validarCampos.js";
-import express from 'express';
+import { Router } from "express";
 
-const router = express.Router();
+import { publicationPut, publicationGet, publicationById } from "./publications.controller.js";
 
-router.post('/publications', publicationsPost);
+const router = Router();
 
-router.get("/", publicationsGet);
+router.get("/publications", publicationGet)
 
-router.get(
-    "/:id", [
-        check("id", "The ID entered is not valid").isMongoId(),
-        validarCampos,
+router.get("/publication/:id", publicationById)
+
+router.put(
+    "/publication/:id", [
+        check("id", "El id es obligatorio").not().isEmpty(),
+        check("nombre", "El título es obligatorio").not().isEmpty(),
+        check("comentario", "La descripción es obligatoria").not().isEmpty(),
     ],
-    getPublicationsById
-);
-
-router.post(
-    "/", [
-        check("title", "The title is obligatory").not().isEmpty(),
-        check("description", "The description is obligatory").not().isEmpty(),
-        validarCampos,
-    ],
-    publicationsPost
-);
-
-router.delete(
-    "/:id", [
-        check("id", "The ID entered is not valid").isMongoId(),
-        validarCampos,
-    ],
-    publicationsDelete
+    publicationPut
 );
 
 export default router;

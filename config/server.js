@@ -1,26 +1,26 @@
 'use strict'
-
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import morgan from 'morgan'
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import { dbConnection } from './mongo.js';
-import publicationRoutes from '../src/publications/publications.routes.js';
-import comentRoutes from '../src/coments/coments.routes.js';
+import { comprobarInformacion } from '../src/publications/publications.controller.js';
+import publicationRoutes from '../src/publications/publications.routes.js'
 
 class Server {
     constructor() {
         this.app = express();
         this.port = process.env.PORT;
-        this.publicationPath = '/api/publication';
-        this.comentPath = '/api/coment';
+        this.publicationPath = '/blog/v1';
+
         this.middlewares();
-        this.conectarDB();
+        this.connectDB();
         this.routes();
     }
 
-    async conectarDB() {
+    async connectDB() {
         await dbConnection();
+        await comprobarInformacion();
     }
 
     middlewares() {
@@ -33,7 +33,6 @@ class Server {
 
     routes() {
         this.app.use(this.publicationPath, publicationRoutes);
-        this.app.use(this.comentPath, comentRoutes);
     }
 
     listen() {
